@@ -16,7 +16,12 @@ from core.utils import write_json
 
 
 def run_data_quality_checks(df: pd.DataFrame, settings: Settings, report_name: str) -> dict[str, Any]:
-    """Run the required Great Expectations 1.x checks in an ephemeral context."""
+    """Run the Great Expectations 1.x data quality gate on a dataframe."""
+    required_columns = {"paper_id", "title", "summary", "text_for_embedding", "published", "age_days"}
+    missing_columns = sorted(required_columns - set(df.columns))
+    if missing_columns:
+        raise ValueError(f"Quality gate cannot run; missing columns: {', '.join(missing_columns)}")
+
     context = gx.get_context(mode="ephemeral")
     data_source = context.data_sources.add_pandas(name=f"{report_name}_source")
     data_asset = data_source.add_dataframe_asset(name=f"{report_name}_asset")
@@ -41,17 +46,19 @@ def run_data_quality_checks(df: pd.DataFrame, settings: Settings, report_name: s
                 {
                     "success": False,
                     "expectation_config": expectation.configuration.to_json_dict(),
-                    "exception_info": {"raised_exception": True, "exception_message": str(exc)},
+                    "exception_info": {
+                        "raised_exception": True,
+                        "exception_message": str(exc),
+                    },
                 }
             )
 
     blank_values: dict[str, int] = {}
     for column in ("paper_id", "title", "text_for_embedding"):
-        if column in df.columns:
-            blank_values[column] = int(
-                df[column].isna().sum()
-                + df[column].astype("string").str.strip().eq("").sum()
-            )
+        blank_values[column] = int(
+            df[column].isna().sum()
+            + df[column].astype("string").str.strip().eq("").sum()
+        )
     non_empty = all(count == 0 for count in blank_values.values())
     freshness = build_freshness_report(df, settings, settings.paths.freshness_report)
     payload = {
@@ -60,16 +67,31 @@ def run_data_quality_checks(df: pd.DataFrame, settings: Settings, report_name: s
         and freshness["is_fresh"],
         "report_name": report_name,
         "row_count": int(len(df)),
+        "statistics": {
+            "evaluated_expectations": len(results),
+            "successful_expectations": sum(1 for item in results if item.get("success")),
+        },
         "expectations": results,
         "blank_value_counts": blank_values,
         "freshness": freshness,
     }
-    write_json(settings.paths.quality_dir / f"{report_name}_quality_report.json", payload)
+
+    report_path = settings.paths.quality_dir / f"{report_name}_quality_report.json"
+    if report_name == "baseline":
+        report_path = settings.paths.baseline_quality_report
+    elif report_name == "corrupted":
+        report_path = settings.paths.corrupted_quality_report
+    write_json(report_path, payload)
     return payload
 
 
 def build_freshness_report(df: pd.DataFrame, settings: Settings, report_path) -> dict[str, Any]:
-    """Summarize the age distribution and enforce the 25% stale-row SLA."""
+    """Summarize age distribution and enforce the 25% stale-row SLA."""
+    required_columns = {"published", "age_days"}
+    missing_columns = sorted(required_columns - set(df.columns))
+    if missing_columns:
+        raise ValueError(f"Freshness report cannot run; missing columns: {', '.join(missing_columns)}")
+
     if df.empty:
         payload = {
             "latest_published": None,
@@ -82,14 +104,14 @@ def build_freshness_report(df: pd.DataFrame, settings: Settings, report_path) ->
             "is_fresh": False,
         }
     else:
-        ages = pd.to_numeric(df.get("age_days", pd.Series(dtype="float64")), errors="coerce")
+        published = pd.to_datetime(df["published"], errors="coerce")
+        ages = pd.to_numeric(df["age_days"], errors="coerce")
         stale_rows = int((ages > settings.freshness_threshold_days).sum())
         total_rows = int(len(df))
-        dates = pd.to_datetime(df["published"], errors="coerce")
         stale_ratio = stale_rows / total_rows if total_rows else 1.0
         payload = {
-            "latest_published": dates.max().date().isoformat() if dates.notna().any() else None,
-            "oldest_published": dates.min().date().isoformat() if dates.notna().any() else None,
+            "latest_published": published.max().date().isoformat() if published.notna().any() else None,
+            "oldest_published": published.min().date().isoformat() if published.notna().any() else None,
             "stale_rows": stale_rows,
             "total_rows": total_rows,
             "stale_ratio": stale_ratio,
