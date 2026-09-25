@@ -1,58 +1,45 @@
 # Danh Sách Thành Viên & Báo Cáo Phân Công Nhóm
 
-- **Tên Nhóm:** `[Điền tên nhóm]`
+- **Tên Nhóm:** `Violet`
 - **Mã Nhóm / Lớp:** `K4-L3-DAY10`
-- **Tên Repository Nộp Bài:** `K4-L3-DAY10-TenNhom-DataPipeline`
+- **Tên Repository Nộp Bài:** `K4-L3-DAY10-Violet-DataPipeline`
 
 ---
 
-## # Thành viên
+## 👥 Thành viên
 
 | STT | Họ và tên | MSSV | Email | Vai trò & Phân công công việc | Báo cáo cá nhân |
 |---:|---|---|---|---|---|
-| 1 | | | | Trưởng nhóm / Pipeline Integrator (`core/`, `phase1.py`, `corruption_flow.py`) | `report/<MSSV1>_HoTen.md` |
-| 2 | | | | Data Foundation & Recovery (`crossref.py`, `cleaning.py`, raw data) | `report/<MSSV2>_HoTen.md` |
-| 3 | | | | RAG & Vector Index (`retrieval/index.py`, `embeddings.py`, ChromaDB) | `report/<MSSV3>_HoTen.md` |
-| 4 | | | | Observability & Evaluation (`quality.py` GX 1.x, `testset.py`, reporting) | `report/<MSSV4>_HoTen.md` |
+| 1 | Nguyễn Phát Thịnh | 2A202602645 | thinhnp2A202602645@student.vn | Pipeline Lead & Data Foundation Owner (`crossref.py`, `cleaning.py`, `corruption.py`, `phase1.py`, `corruption_flow.py`) | `report/2A202602645_NguyenPhatThinh.md` |
+| 2 | Lê Nguyễn Thái Dương | 2A202602383 | duonglnt2A202602383@student.vn | RAG Specialist (`retrieval/index.py`, `embeddings.py`, ChromaDB, metrics) | `report/2A202602383_LeNguyenThaiDuong.md` |
+| 3 | Nguyễn Minh Lương | 2A202602618 | luongnm2A202602618@student.vn | Observability & Evaluation Lead (`quality.py` GX 1.x, `testset.py`, reporting) | `report/2A202602618_NguyenMinhLuong.md` |
 
-*(Nếu nhóm có 3 hoặc 5-6 thành viên, xem bảng phân công chi tiết theo vai trò trong file `CHECKPOINTS.md`)*.
+*(Nhóm có 3 thành viên, đã bao phủ toàn bộ khối lượng công việc theo yêu cầu của bài lab)*.
 
 ---
 
-## # Cá nhân
+## 📝 Tóm tắt đóng góp cá nhân
 
-### ## HoVaTen1-MSSV1
-- **Vai trò:** Trưởng nhóm & Điều phối Pipeline.
+### 👤 Nguyễn Phát Thịnh (2A202602645)
+- **Vai trò:** Trưởng nhóm & Pipeline Lead.
 - **Công việc chi tiết đã hoàn thành:**
-  - Thiết lập cấu hình hệ thống `core/config.py` và đường dẫn artifacts `core/utils.py`.
-  - Kết nối luồng thực thi trong `src/pipelines/phase1.py` và `src/pipelines/corruption_flow.py`.
-  - Kiểm tra tính nhất quán của các artifacts và theo dõi Contributor tracking trên GitHub nhánh `main`.
-- **Điều học được / Đóng góp chính:**
-  - Hiểu sâu sắc về thiết kế Idempotent Pipeline và quản lý trạng thái luồng dữ liệu đa tầng.
+  - Xây dựng module thu thập API Crossref và cơ chế Fallback Offline trong `src/ingestion/crossref.py`.
+  - Làm sạch văn bản, xử lý rác HTML và tạo cột `text_for_embedding` trong `src/ingestion/cleaning.py`.
+  - Lập trình 6 kịch bản giả lập lỗi (Silent Data Failures) trong `src/ingestion/corruption.py`.
+  - Xây dựng 2 file luồng chính: `script/run_phase1.py` và `script/run_corruption_flow.py`. Đảm bảo cơ chế tự phục hồi (Idempotent Repair) hoạt động hoàn hảo.
 
-### ## HoVaTen2-MSSV2
-- **Vai trò:** Phụ trách Ingestion, Làm sạch & Phục hồi dữ liệu.
-- **Công việc chi tiết đã hoàn thành:**
-  - Xây dựng module thu thập Crossref API với cơ chế Fallback offline trong `src/ingestion/crossref.py`.
-  - Chuẩn hóa schema, tính toán trường `age_days` và `text_for_embedding` trong `src/ingestion/cleaning.py`.
-  - Thực thi cơ chế Idempotent Repair phục hồi dữ liệu từ raw snapshot.
-- **Điều học được / Đóng góp chính:**
-  - Kỹ thuật truy vết nguồn gốc dữ liệu (Data Lineage) và bảo toàn raw snapshot trước khi biến đổi.
-
-### ## HoVaTen3-MSSV3
+### 👤 Lê Nguyễn Thái Dương (2A202602383)
 - **Vai trò:** Phụ trách RAG, Vector Database & Embedding.
 - **Công việc chi tiết đã hoàn thành:**
-  - Quản lý mô hình embedding `sentence-transformers/all-MiniLM-L6-v2`.
-  - Nạp và quản lý 3 collection riêng biệt trong ChromaDB (`papers-baseline`, `papers-corrupted`, `papers-repaired`).
-  - Xây dựng QA Agent truy vấn ngữ cảnh chính xác theo tài liệu.
-- **Điều học được / Đóng góp chính:**
-  - Cách cô lập các không gian vector để so sánh khách quan giữa dữ liệu sạch và dữ liệu bị lỗi.
+  - Quản lý và verify mô hình embedding `sentence-transformers/all-MiniLM-L6-v2`.
+  - Khởi tạo và thiết lập Collection trên ChromaDB, đảm bảo metadata được lưu chuẩn xác.
+  - Phụ trách tích hợp và kiểm thử truy vấn RAG độc lập trên dữ liệu Baseline và Corrupted.
+  - Hỗ trợ Pipeline Lead chạy test, fix bug luồng RAG và gom các artifacts (`data/chroma/`, `data/results/`) chuẩn bị cho quá trình Submit.
 
-### ## HoVaTen4-MSSV4
+### 👤 Nguyễn Minh Lương (2A202602618)
 - **Vai trò:** Phụ trách Data Observability & Benchmark Evaluation.
 - **Công việc chi tiết đã hoàn thành:**
-  - Thiết lập Quality Gate theo chuẩn mới **Great Expectations 1.x** và giám sát Freshness SLA trong `src/observability/quality.py`.
-  - Xây dựng bộ câu hỏi đánh giá chuẩn trong `src/evaluation/testset.py`.
-  - Đo lường và xuất bảng đối chiếu 3 trạng thái vào `data/reports/corruption_report.md`.
-- **Điều học được / Đóng góp chính:**
-  - Cách thiết lập hệ thống cảnh báo sớm chặn đứng hiện tượng Silent Failure trước khi dữ liệu vào serving layer.
+  - Thiết lập Quality Gate chuẩn Great Expectations 1.x (mode ephemeral) bắt chính xác lỗi dữ liệu dơ trong `src/observability/quality.py`.
+  - Xây dựng thuật toán tạo bộ câu hỏi Benchmark tự động từ DataFrame trong `src/evaluation/testset.py`.
+  - Cài đặt hệ thống Freshness SLA, đo lường độ trễ ngày xuất bản.
+  - Lập trình tự động sinh file Báo cáo định lượng (Markdown) đối chiếu 3 trạng thái Baseline - Corrupted - Repaired.
